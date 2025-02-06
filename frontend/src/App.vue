@@ -1,53 +1,51 @@
 <template>
-    <v-app id="inspire">
-        <SNSApp />
+    <v-app>
+        <v-main>
+            <v-container fluid class="pa-0">
+                <!-- <component v-bind:is="componentName" :value="value"></component> -->
+                <review-review-cards
+                    :show-reviews="showReviews" 
+                    :show-review-input="showReviewInput" 
+                    :detail-mode="detailMode"
+                ></review-review-cards>
+            </v-container>
+        </v-main>
     </v-app>
 </template>
 
 <script>
-import SNSApp from './SNSApp.vue'
+import ReviewReviewCards from "./components/listers/ReviewReviewCards"
+// import ReviewReviewDetail from "./components/listers/ReviewReviewDetail"
 
 export default {
-
-    components: {
-        SNSApp
-    },
     name: "App",
-    data: () => ({
-        useComponent: "",
-        drawer: true,
-        components: [],
-        sideBar: true,
-        urlPath: null,
-    }),
-    
-    async created() {
-      var path = document.location.href.split("#/")
-      this.urlPath = path[1];
-
+    components: {
+        "review-review-cards": ReviewReviewCards,
+        // "review-review-detail": ReviewReviewDetail
     },
-
+    props: {
+        value: Object
+    },
+    data() {
+        return {
+            componentName: "review-review-manager",
+            showReviews: true,
+            showReviewInput: true,
+            detailMode: true
+        }
+    },
     mounted() {
-        var me = this;
-        me.components = this.$ManagerLists;
+        // if (this.value) {
+        //     if (this.value.id) {
+        //         this.componentName = "review-review-detail";
+        //     } else {
+        //         this.componentName = "review-review-manager";
+        //     }
+        // }
     },
-
-    methods: {
-        openSideBar(){
-            this.sideBar = !this.sideBar
-        },
-        changeUrl() {
-            var path = document.location.href.split("#/")
-            this.urlPath = path[1];
-        },
-        goHome() {
-            this.urlPath = null;
-        },
-    }
 };
 </script>
+
+
 <style>
-*{
-    font-family:  !important;
-}
 </style>

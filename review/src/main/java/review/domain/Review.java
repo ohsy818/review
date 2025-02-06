@@ -33,9 +33,6 @@ public class Review {
     @Lob
     private String userImg;
 
-    @Lob
-    private String userImg;
-
     @PostPersist
     public void onPostPersist() {
         ReviewAdded reviewAdded = new ReviewAdded(this);
@@ -53,7 +50,7 @@ public class Review {
         ReviewDeleted reviewDeleted = new ReviewDeleted(this);
         reviewDeleted.publishAfterCommit();
     }
-
+    
     public static ReviewRepository repository() {
         ReviewRepository reviewRepository = ReviewApplication.applicationContext.getBean(
             ReviewRepository.class

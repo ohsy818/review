@@ -1,19 +1,22 @@
 <template>
     <div>
-        <div v-if="editMode" style="margin-top:-20px;">
+        <div v-if="editMode">
             <v-textarea v-if="multiLine"
                     :label="label" 
                     v-model="value"
                     @change="change"
+                    outlined
+                    auto-grow
+                    rows="2"
             />
             <v-text-field v-else
-                    :label="label" 
-                    v-model="value"
-                    @change="change"
+                :label="label" 
+                v-model="value"
+                @change="change"
             />
         </div>
         <div v-else>
-            {{label}} :  {{value}}
+            <span v-if="showLabel">{{label}} : </span>{{value}}
         </div>
     </div>
 </template>
@@ -30,7 +33,11 @@
             },
             editMode: Boolean,
             label: String,
-            inputUI: String
+            inputUI: String,
+            showLabel: {
+                type: Boolean,
+                default: true
+            }
         },
         computed: {
             multiLine() {

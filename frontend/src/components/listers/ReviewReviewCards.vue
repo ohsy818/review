@@ -1,157 +1,192 @@
 <template>
     <div>
-        <v-card
-            class="mx-auto"
-            outlined
-            color="primary"
-            style="padding:10px 0px 10px 0px; margin-bottom:40px;"
-        >
-            <v-row>
-                <v-list-item class="d-flex" style="background-color: white;">
-                    <h1 class="align-self-center ml-3">Review</h1>
-                    <div class="secondary-text-color" style="margin-left:30px;"></div>
-                </v-list-item>
+        <div v-if="!detailMode">
+            <v-row class="ma-0">
+                <v-icon style="padding-bottom:2px;" color="blue" size="16">mdi-star</v-icon>
+                <div class="ml-1" style="font-size:12px; color:gray">{{ averageRating }}</div>
+                <div class="ml-1 mr-1" style="font-size:12px; font-weight: 900; color:gray">·</div>
+                <div style="font-size:12px; color:gray">리뷰 {{ values.length }}</div>
             </v-row>
-        </v-card>
-        <v-col style="margin-bottom:40px;">
-            <div class="text-center">
-                <v-dialog
-                        v-model="openDialog"
-                        width="332.5"
-                        fullscreen
-                        hide-overlay
-                        transition="dialog-bottom-transition"
-                >
-                    <ReviewReview :offline="offline" class="video-card" :isNew="true" :editMode="true" v-model="newValue" 
-                            @add="append" v-if="tick"/>
-
-                    <v-btn
-                            style="postition:absolute; top:2%; right:2%"
-                            @click="closeDialog()"
-                            depressed
-                            icon 
-                            absolute
-                    >
-                        <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                </v-dialog>
-
-                <v-row>
-                    <v-card
-                        class="mx-auto"
-                        style="height:300px; width:300px; margin-bottom:20px; text-align: center;"
-                        outlined
-                    >
-                        <v-list-item>
-                            <v-list-item-avatar 
-                                class="mx-auto"
-                                size="80"
-                                style="margin-top:80px;"
-                            ><v-icon color="primary" x-large>mdi-plus</v-icon>
-                            </v-list-item-avatar>
-                        </v-list-item>
-
-                        <v-card-actions>
-                            <v-btn 
-                                v-on="on"
-                                class="mx-auto"
-                                outlined
-                                rounded
-                                @click="openDialog=true;"
-                                color="primary"
-                                style="font-weight:500; font-size:20px; padding:15px; border:solid 2px; max-width:250px; overflow:hidden"
-                            >
-                                Review 등록
-                            </v-btn>
-                        </v-card-actions>
-                    </v-card>
-                </v-row>
+        </div>
+        <div v-else>
+            <div class="pa-4 d-flex justify-center">
+                <div class="text-center mr-8">
+                    <div style="font-size:64px; font-weight: 500;">{{ averageRating }}</div>
+                    <v-rating
+                        v-model="averageRating"
+                        color="blue"
+                        background-color="grey"
+                        dense
+                        readonly
+                        length="5"
+                    ></v-rating>
+                </div>
+                <div class="mr-8">
+                    <div v-for="(count, rating) in ratingCounts" :key="rating">
+                        <v-row class="ma-0 pa-0 justify-center align-center">
+                            <div style="font-weight: 700;">{{ rating }}점</div>
+                            <div class="ml-2 mr-2">
+                                <v-progress-linear
+                                    style="width:100px;"
+                                    :value="(count / values.length) * 100"
+                                    height="5"
+                                    color="blue"
+                                    rounded
+                                ></v-progress-linear>
+                            </div>
+                            <div style="opacity: 0.7;">{{ count }}</div>
+                        </v-row>
+                    </div>
+                </div>
+                <div class="text-center align-center">
+                    <div style="font-size:12px; font-weight: 700;">전체 리뷰수</div>
+                    <v-img :src="require('@/assets/icon/chat.svg')" width="48" height="48" class="mx-auto"></v-img>
+                    <div style="font-size:32px; font-weight: 700;">{{ values.length }}</div>
+                </div>
             </div>
-        </v-col>
-        <v-row>
-            <ReviewReview :offline="offline" class="video-card" v-for="(value, index) in values" v-model="values[index]" v-bind:key="index" @delete="remove"/>
-        </v-row>
+                
+            <div style="width: 100%;">
+                <div v-if="showReviews">
+                    <v-col class="pa-0" v-for="(review, index) in values" :key="index">
+                        <ReviewReview 
+                            :isNew="false" 
+                            :value="review"
+                            :editable="review.userId == userId" 
+                            @delete="remove" 
+                            @edit="edit" 
+                            class="mx-auto mb-4 mt-4 pa-4" />
+                        <v-divider></v-divider>
+                    </v-col>
+                </div>
+                <v-col v-if="showReviewInput" class="pa-0 pt-4">
+                    <ReviewReview :isNew="true" v-model="newValue" @add="append" class="mx-auto pa-4" />
+                </v-col>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
+const axios = require('axios').default;
+import ReviewReview from './../ReviewReview.vue';
 
-    const axios = require('axios').default;
-    import ReviewReview from './../ReviewReview.vue';
-
-    export default {
-        name: 'ReviewReviewManager',
-        components: {
-            ReviewReview,
+export default {
+    name: 'ReviewReviewCards',
+    components: {
+        ReviewReview,
+    },
+    props: {
+        value: Object,
+        // showReviews 등록된 리뷰 보기,
+        showReviews: {
+            type: Boolean,
+            default: false, // 기본값 설정
         },
-        props: {
-            offline: Boolean
+        // showReviewInput 리뷰 등록 UI 활성화
+        showReviewInput: {
+            type: Boolean,
+            default: false, // 기본값 설정
         },
-        data: () => ({
-            values: [],
-            newValue: {},
-            tick : true,
-            openDialog : false,
-        }),
-        async created() {
-            var me = this;
-            if(me.offline){
-                if(!me.values) me.values = [];
-                return;
-            } 
-
-            var temp = await axios.get(axios.fixUrl('/reviews'))
-            me.values = temp.data._embedded.reviews;
-            
-            me.newValue = {
-                'itemId': '',
+        //detailMode (false : 별점 평균과 등록된 리뷰만 표시, true : showReviews, showReviewInput 활성화시 디테일 UI로 변경)
+        detailMode: {
+            type: Boolean,
+            default: false, // 기본값 설정
+        },
+    },
+    data: () => ({
+        values: [],
+        filteredValues: [], // 필터링된 리뷰 목록
+        selectedRating: null, // 선택된 별점
+        newValue: {
+            'itemId': '',
+            'rating': 0,
+            'text': '',
+            'userId': '',
+            'userImg': '',
+        },
+        openDialog: false,
+        averageRating: 0,
+        ratingCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    }),
+    computed: {
+        userId() {
+            if (this.value && this.value.userId) return this.value.userId;
+            return null
+        }
+    },
+    created() {
+        var me = this;
+        if (this.value) {
+            this.newValue = {
+                'itemId': this.value.itemId || '',
                 'rating': 0,
                 'text': '',
-                'userId': '',
-                'userImg': '',
-                'userImg': '',
+                'userId': this.value.userId || '',
+                'userImg': this.value.userImg || null,
+            };
+        }
+        me.getReviewList();
+    },
+    methods:{
+        async getReviewList() {
+            var me = this;
+            try {
+                var temp = null;
+                var url = '/reviews';
+                if (me.value && me.value.itemId) {
+                    url = '/reviews/search/findByItemId?itemId=' + me.value.itemId;
+                }
+                temp = await axios.get(axios.fixUrl(url));
+                if (temp.data) {
+                    me.values = temp.data._embedded.reviews;
+                    me.calculateAverageRating();
+                } else {
+                    me.values = [];
+                }
+            } catch(e) {
+                console.log(e);
             }
         },
-        methods:{
-            closeDialog(){
-                this.openDialog = false
-            },
-            append(value){
-                this.tick = false
-                this.newValue = {}
-                this.values.push(value)
-                
-                this.$emit('input', this.values);
+        append() {
+            this.getReviewList();
+            this.calculateAverageRating();
+            this.newValue = {
+                'itemId': this.value.itemId || '',
+                'rating': 0,
+                'text': '',
+                'userId': this.value.userId || '',
+                'userImg': this.value.userImg || null,
+            };
+        },
+        remove() {
+            this.getReviewList();
+            this.calculateAverageRating(); // 데이터 변경 후 평균 계산
+        },
+        edit() {
+            this.getReviewList();
+            this.calculateAverageRating(); // 데이터 변경 후 평균 계산
+        },
+        calculateAverageRating() {
+            if (this.values.length === 0) {
+                this.averageRating = 0;
+                this.ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+                return;
+            }
+            const total = this.values.reduce((sum, review) => sum + (review.rating || 0), 0);
+            this.averageRating = parseFloat((total / this.values.length).toFixed(1));
 
-                this.$nextTick(function(){
-                    this.tick=true
-                })
-            },
-            remove(value){
-                var where = -1;
-                for(var i=0; i<this.values.length; i++){
-                    if(this.values[i]._links.self.href == value._links.self.href){
-                        where = i;
-                        break;
-                    }
+            // 각 점수별 제출자 수 계산
+            this.ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            this.values.forEach(review => {
+                if (review.rating >= 1 && review.rating <= 5) {
+                    this.ratingCounts[review.rating]++;
                 }
-
-                if(where > -1){
-                    this.values.splice(i, 1);
-                    this.$emit('input', this.values);
-                }
-            },
-        }
-    };
+            });
+        },
+    }
+};
 </script>
 
-
 <style>
-    .video-card {
-        width:300px; 
-        margin-left:4.5%; 
-        margin-top:50px; 
-        margin-bottom:50px;
-    }
 </style>
 

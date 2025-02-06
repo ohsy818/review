@@ -1,7 +1,7 @@
 <template>
     <v-card outlined>
         <v-card-title>
-            Review # {{item._links.self.href.split("/")[item._links.self.href.split("/").length - 1]}}
+            Review # {{ value && value.id ? value.id : '' }}
         </v-card-title>
 
         <v-card-text>
@@ -20,45 +20,21 @@
             <div>
                 <String label="UserImg" v-model="item.userImg" :editMode="editMode" @change="change" />
             </div>
-            <div>
-                <String label="UserImg" v-model="item.userImg" :editMode="editMode" @change="change" />
-            </div>
         </v-card-text>
 
         <v-card-actions>
-            <v-btn text color="deep-purple lighten-2" large @click="goList">List</v-btn>
             <v-spacer></v-spacer>
-            <v-btn
-                    color="primary"
-                    text
-                    @click="edit"
-                    v-if="!editMode"
-            >
-                Edit
+            <v-btn color="primary" text @click="edit" v-if="!editMode">
+                수정
             </v-btn>
-            <v-btn
-                    color="primary"
-                    text
-                    @click="save"
-                    v-else
-            >
-                Save
+            <v-btn color="primary" text @click="save" v-else>
+                저장
             </v-btn>
-            <v-btn
-                    color="primary"
-                    text
-                    @click="remove"
-                    v-if="!editMode"
-            >
-                Delete
+            <v-btn v-if="!editMode" color="primary" text @click="remove">
+                삭제
             </v-btn>
-            <v-btn
-                    color="primary"
-                    text
-                    @click="editMode = false"
-                    v-if="editMode"
-            >
-                Cancel
+            <v-btn v-if="editMode" color="primary" text @click="editMode = false">
+                취소
             </v-btn>
         </v-card-actions>
     </v-card>
@@ -66,49 +42,67 @@
 
 
 <script>
-    const axios = require('axios').default;
+const axios = require('axios').default;
 
-    export default {
-        name: 'ReviewReviewDetail',
-        components:{},
-        props: {
+export default {
+    name: 'ReviewReviewDetail',
+    components:{},
+    props: {
+        value: Object
+    },
+    data: () => ({
+        item: {
+            'itemId': '',
+            'rating': 0,
+            'text': '',
+            'userId': '',
+            'userImg': '',
         },
-        data: () => ({
-            item: null,
-            editMode: false,
-        }),
-        async created() {
-            var me = this;
-            var params = this.$route.params;
+        editMode: false,
+    }),
+    async created() {
+        var me = this;
+        var params = this.value || this.$route;
+        try {
             var temp = await axios.get(axios.fixUrl('/reviews/' + params.id))
-            if(temp.data) {
-                me.item = temp.data
+            if (temp.data) {
+                me.item = temp.data;
+            }
+            if (!me.itemId && params.itemId) {
+                me.item.itemId = params.itemId
+            }
+        } catch (e) {
+            console.log(e)
+            if (params.itemId) {
+                me.item.itemId = params.itemId
+            }
+        }
+    },
+    methods: {
+        edit() {
+            this.editMode = true;
+        },
+        async save() {
+            try {
+                await axios.put(axios.fixUrl('/reviews/' + this.value.id), this.item);
+                this.editMode = false;
+                this.$emit('edit');
+            } catch(e) {
+                console.log(e);
             }
         },
-        methods: {
-            goList() {
-                var path = window.location.href.slice(window.location.href.indexOf("/#/"), window.location.href.lastIndexOf("/#"));
-                path = path.replace("/#/", "/");
-                this.$router.push(path);
-            },
-            edit() {
-                this.editMode = true;
-            },
-            async remove(){
-                try {
-                    if (!this.offline) {
-                        await axios.delete(axios.fixUrl(this.item._links.self.href))
-                    }
-
-                    this.editMode = false;
-
-                    this.$emit('input', this.item);
-                    this.$emit('delete', this.item);
-
-                } catch(e) {
-                    console.log(e)
-                }
-            },
+        async remove() {
+            try {
+                await axios.delete(axios.fixUrl(this.item._links.self.href))
+                this.editMode = false;
+                this.$emit('delete', this.item);
+            } catch(e) {
+                console.log(e);
+            }
         },
-    };
+        change() {
+            this.$emit('input', this.item);
+        },
+    },
+};
 </script>

@@ -33,11 +33,6 @@ public class ReviewsViewHandler {
             reviews.setText(reviewAdded.getText());
             reviews.setUserId(reviewAdded.getUserId());
             reviews.setUserImg(reviewAdded.getUserImg());
-            reviews.setItemId(reviewAdded.getItemId());
-            reviews.setRating(reviewAdded.getRating());
-            reviews.setText(reviewAdded.getText());
-            reviews.setUserId(reviewAdded.getUserId());
-            reviews.setUserImg(reviewAdded.getUserImg());
             // view 레파지 토리에 save
             reviewsRepository.save(reviews);
         } catch (Exception e) {
@@ -60,7 +55,6 @@ public class ReviewsViewHandler {
                 Reviews reviews = reviewsOptional.get();
                 // view 객체에 이벤트의 eventDirectValue 를 set 함
                 reviews.setRating(reviewUpdated.getRating());
-                reviews.setText(reviewUpdated.getText());
                 reviews.setText(reviewUpdated.getText());
                 // view 레파지 토리에 save
                 reviewsRepository.save(reviews);

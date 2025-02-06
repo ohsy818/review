@@ -17,11 +17,6 @@ public class ReviewAdded extends AbstractEvent {
     private String text;
     private String userId;
     private String userImg;
-    private String itemId;
-    private Double rating;
-    private String text;
-    private String userId;
-    private String userImg;
 
     public ReviewAdded(Review aggregate) {
         super(aggregate);

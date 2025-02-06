@@ -18,7 +18,7 @@ module.exports = {
       .use('vue-loader')
       .loader('vue-loader')
       .tap(options => {
-          options.compilerOptions = {
+        options.compilerOptions = {
           ...options.compilerOptions,
           isCustomElement: tag => tag === 'review-app',
         };

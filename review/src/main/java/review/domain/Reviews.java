@@ -20,10 +20,6 @@ public class Reviews {
     private Double rating;
     private String text;
     private String userId;
-    private String userImg;
-    private String itemId;
-    private Double rating;
-    private String text;
-    private String userId;
+    @Lob
     private String userImg;
 }

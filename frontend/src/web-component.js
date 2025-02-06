@@ -10,7 +10,7 @@ Vue.use(Managing);
 Vue.use(Vuetify);
 
 const axios = require("axios").default;
-axios.backend = null; //"http://localhost:8088";
+axios.backend = "http://localhost:8088";
 if (axios.backend) axios.backendUrl = new URL(axios.backend);
 axios.fixUrl = function(original) {
     if(!axios.backend && original.indexOf("/")==0) {
